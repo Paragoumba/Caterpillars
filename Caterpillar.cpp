@@ -2,85 +2,62 @@
 // Created by Paragoumba on 19/04/19.
 //
 
-#include <math.h>
+#include <string>
+#include <time.h>
 #include <iostream>
 #include "Caterpillar.h"
-#include "Game.h"
+#include "Properties.h"
+#include "Bullet.h"
 
 Caterpillar::Caterpillar() {
 
     numTextures = 3;
-    textures = new SDL_Texture*[numTextures];
+    textures = new SDL_Texture*[numTextures]{nullptr};
 
     for (int i = 0; i < numTextures; ++i){
 
         std::string path = "/home/paragoumba/Documents/Dev/C++/Code/Games/Caterpillars/res/caterpillar";
         path.append(std::to_string(i)).append(".bmp");
-        textures[i] = SDL_CreateTextureFromSurface(Game::renderer, SDL_LoadBMP(path.c_str()));
+        textures[i] = SDL_CreateTextureFromSurface(Properties::window->getRenderer(), SDL_LoadBMP(path.c_str()));
 
     }
 
     SDL_QueryTexture(textures[0], nullptr, nullptr, &box.w, &box.h);
-    box.x = (Game::WIDTH + box.w) / 2;
-    box.y = (Game::HEIGHT + box.h) / 2;
+    box.x = 0;
+    box.y = 0;
 
 }
 
-void Caterpillar::draw() const {
+void Caterpillar::draw(SDL_Renderer* renderer) const {
 
     SDL_Rect rect;
+    rect.w = rect.h = 4;
+    float x, y;
 
-    rect.h = 4;
-    rect.w = 4;
+    getAimingPosition(x, y);
 
-    int middleX = box.w / 2;
+    rect.x = (int) round(box.x + (float) box.w / 2 + x);
+    rect.y = (int) round(box.y + 15 + y);
 
-    if (looksRight) {
-
-        rect.x = box.x + middleX + (int) round(-30 * cos((aimingAngle + 90) * M_PI / 180));
-        rect.y = box.y - (int) round(-30 * sin((aimingAngle + 90) * M_PI / 180)) + 15;
-
-    } else {
-
-        rect.x = box.x + middleX + (int) round(30 * cos((aimingAngle + 90) * M_PI / 180));
-        rect.y = box.y + (int) round(30 * sin((aimingAngle + 90) * M_PI / 180)) + 15;
-
-    }
-
-    SDL_RenderCopyEx(Game::renderer, textures[actualTexture], nullptr, &box, 0, nullptr, looksRight ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
-    SDL_SetRenderDrawColor(Game::renderer, 0, 85, 255, 255);
-    SDL_RenderFillRect(Game::renderer, &rect);
-    SDL_SetRenderDrawColor(Game::renderer, 0, 0, 0, 255);
-
-}
-
-void Caterpillar::move(int x, int y) {
-
-    box.x += x;
-    box.y += y;
+    SDL_RenderCopyEx(renderer, textures[actualTexture], nullptr, &box, 0, nullptr, looksRight ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+    SDL_SetRenderDrawColor(renderer, 0, 85, 255, 255);
+    SDL_RenderFillRect(renderer, &rect);
 
 }
 
 void Caterpillar::update() {
 
-    velY *= 0.90;
+    box.x += (int) round(velX);
+    box.y += (int) round(velY);
 
-    box.x += velX;
-    box.y += velY;
-
-    if (aimingAngle < 0) aimingAngle = 0;
-    else if (aimingAngle > 180) aimingAngle = 180;
     if (box.x < 0) box.x = 0;
     if (box.y < 0) box.y = 0;
-    if (box.x >= Game::WIDTH - box.w) box.x = Game::WIDTH - box.w;
-    if (box.y >= Game::HEIGHT - box.h) box.y = Game::HEIGHT - box.h;
 
-}
+    int windowWidth = Properties::window->getWidth();
+    int windowHeight = Properties::window->getHeight();
 
-void Caterpillar::addVelocity(float velX, float velY) {
-
-    this->velX += velX;
-    this->velY += velY;
+    if (box.x >= windowWidth - box.w) box.x = windowWidth - box.w;
+    if (box.y >= windowHeight - box.h) box.y = windowHeight - box.h;
 
 }
 
@@ -94,6 +71,9 @@ void Caterpillar::addAimingAngle(float angle) {
 
     aimingAngle += angle;
 
+    if (aimingAngle < 0) aimingAngle = 0;
+    else if (aimingAngle > 180) aimingAngle = 180;
+
 }
 
 void Caterpillar::nextTexture() {
@@ -106,7 +86,17 @@ void Caterpillar::nextTexture() {
 
 void Caterpillar::fire() {
 
+    auto *bullet = new Bullet();
 
+    float x, y;
+
+    getAimingPosition(x, y);
+
+    bullet->setPos((int) round(box.x + (float) box.w / 2 + x), (int) round(box.y + 15 + y));
+    bullet->addVelocity(x, y);
+    Properties::game->addEntity(bullet);
+
+    lastFire = time(nullptr);
 
 }
 
@@ -116,5 +106,23 @@ void Caterpillar::deleteTextures() {
         SDL_DestroyTexture(textures[i]);
 
     delete textures;
+
+}
+
+long Caterpillar::getLastFire() const {
+
+    return lastFire;
+
+}
+
+void Caterpillar::getAimingPosition(float &x, float& y) const {
+
+    x = (looksRight ? -1 : 1) *                 // Changes circle's side according to caterpillar's orientation
+        aimingCircleRadius *
+        cos((aimingAngle + 90) * M_PI / 180);   // Component x of the point of the aiming circle
+                                                // towards which caterpillar aims
+    y = aimingCircleRadius *
+        sin((aimingAngle + 90) * M_PI / 180);   // Component y of the point of the aiming circle
+                                                // towards which caterpillar aims
 
 }

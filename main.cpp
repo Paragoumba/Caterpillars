@@ -6,42 +6,31 @@
 #include <iostream>
 #include <thread>
 #include "Caterpillar.h"
-#include "Game.h"
+#include "Properties.h"
+#include "KeyboardHandler.h"
 
 int Caterpillar::numTextures;
 SDL_Texture** Caterpillar::textures;
-
-Game* game;
+Game* Properties::game;
+Window* Properties::window;
+std::map<SDL_Keycode, Uint8> KeyboardHandler::keyStates;
 
 int main(){
 
-    game = new Game();
+    Properties::game = new Game();
+    Properties::window = new Window(
+                    "Caterpillars", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                    1500, 844, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
-    Game::WIDTH = 1500;
-    Game::HEIGHT = 844;
+    Properties::window->setFullscreen(SDL_WINDOW_FULLSCREEN_DESKTOP);
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-
-        std::cout << "SDL_Init error: " << SDL_GetError() << std::endl;
-        return 1;
-
-    }
-
-    SDL_Window* win = SDL_CreateWindow("Caterpillars", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Game::WIDTH, Game::HEIGHT, SDL_WINDOW_SHOWN);
-
-    if (win == nullptr){
-
-        std::cout << "Error when opening window" << std::endl;
-        return 1;
-
-    }
-
-    Game::renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     auto* caterpillar = new Caterpillar();
 
-    SDL_SetRenderDrawColor(Game::renderer, 0, 0, 0, 255);
-    SDL_RenderClear(Game::renderer);
-    SDL_RenderPresent(Game::renderer);
+    caterpillar->setPos(
+            (Properties::window->getWidth() + caterpillar->getWidth()) / 2,
+            Properties::window->getHeight());
+
+    Properties::game->addEntity(caterpillar);
 
     int i = 0;
 
@@ -64,39 +53,20 @@ int main(){
             switch (event.type) {
 
                 case SDL_QUIT:
-
                     running = false;
                     break;
 
-                case SDL_KEYDOWN:
+                case SDL_WINDOWEVENT:
+                    if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 
-                    if (event.key.keysym.sym == SDLK_z) caterpillar->addAimingAngle(10);
-                    if (event.key.keysym.sym == SDLK_q) {
-
-                        caterpillar->setLooksRight(false);
-                        caterpillar->move(-5, 0);
+                        Properties::window->resize();
 
                     }
-                    if (event.key.keysym.sym == SDLK_s) caterpillar->addAimingAngle(-10);
-                    if (event.key.keysym.sym == SDLK_d){
-
-                        caterpillar->setLooksRight(true);
-                        caterpillar->move(5, 0);
-
-                    }
-                    if (event.key.keysym.sym == SDLK_RETURN) caterpillar->addVelocity(0, -30);
-                    if (event.key.keysym.sym == SDLK_SPACE) caterpillar->fire();
-
                     break;
 
+                case SDL_KEYDOWN:
                 case SDL_KEYUP:
-                    if (event.key.keysym.sym == SDLK_ESCAPE) {
-
-                        running = false;
-                        continue;
-
-                    }
-
+                    KeyboardHandler::handleKeyboardEvent(event);
                     break;
 
                 default:
@@ -105,14 +75,42 @@ int main(){
             }
         }
 
-        update();
-        draw();
+        if (KeyboardHandler::isKeyPressed(SDLK_z)) caterpillar->addAimingAngle(5);
+        if (KeyboardHandler::isKeyPressed(SDLK_q)) {
+
+            caterpillar->setLooksRight(false);
+            caterpillar->move(-5, 0);
+
+        }
+        if (KeyboardHandler::isKeyPressed(SDLK_s)) caterpillar->addAimingAngle(-5);
+        if (KeyboardHandler::isKeyPressed(SDLK_d)){
+
+            caterpillar->setLooksRight(true);
+            caterpillar->move(5, 0);
+
+        }
+        if (KeyboardHandler::isKeyPressed(SDLK_RETURN) && caterpillar->isOnGround()) caterpillar->addVelocity(0, -40);
+        if (KeyboardHandler::isKeyPressed(SDLK_SPACE) /*&&
+        ztime(nullptr) - caterpillar->getLastFire() > 1*/) caterpillar->fire();
+        if (KeyboardHandler::isKeyPressed(SDLK_ESCAPE)) {
+
+            running = false;
+            continue;
+
+        }
+
+        Properties::game->update();
+        Properties::window->draw(Properties::game);
 
         ++i;
 
     }
 
-    delete game;
+    Caterpillar::deleteTextures();
+    delete Properties::game;
+    delete Properties::window;
+
+    SDL_Quit();
 
     return EXIT_SUCCESS;
 

@@ -9,7 +9,10 @@
 
 class Bullet : public Entity {
 public:
+    Bullet();
+
     void update() override;
+    void draw(SDL_Renderer* renderer) const override;
 };
 
 

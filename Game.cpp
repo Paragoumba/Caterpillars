@@ -6,18 +6,37 @@
 
 void Game::update() {
 
+    for (auto& entity : entities) {
+
+        entity->mulVelocityY(0.9f);
+        entity->move(0, 10);
+        entity->update();
+
+    }
+}
+
+void Game::draw(SDL_Renderer* renderer){
+
     for (auto& entity : entities)
-        entity.update();
+        entity->draw(renderer);
 
 }
 
-void Game::draw(){
+void Game::addEntity(Entity* entity) {
 
-    SDL_RenderClear(Game::renderer);
+    entities.push_back(entity);
 
-    for (auto& entity : entities)
-        entity.draw();
+}
 
-    SDL_RenderPresent(Game::renderer);
+void Game::removeEntity(Entity* entity) {
 
+    for (auto it = entities.begin(); it != entities.end(); ++it) {
+
+        if ((*it) == entity){
+
+            entities.erase(it);
+            return;
+
+        }
+    }
 }

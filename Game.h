@@ -11,8 +11,10 @@
 
 class Game {
 private:
-    std::vector<Entity> entities;
+    std::vector<Entity*> entities;
 public:
+    void addEntity(Entity* entity);
+    void removeEntity(Entity* entity);
     void update();
     void draw(SDL_Renderer* renderer);
 };
