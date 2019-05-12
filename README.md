@@ -14,8 +14,8 @@ cmake --build build --target Caterpillars -- -j 2
 Then launch the game with `./build/Caterpillar`.
 
 ## Controls
-- Use `a` or `d` to move left or right
-- Use `w` or `s` to aim up or down
+- Use `q` or `d` to move left or right
+- Use `z` or `s` to aim up or down
 - Press `[space]` to shoot
 - Press `[return]` to jump
 - The game quits when `[esc]` is pressed
