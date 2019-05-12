@@ -6,20 +6,24 @@
 #define CATERPILLARS_CATERPILLAR_H
 
 #include <SDL2/SDL_render.h>
+#include <vector>
 #include "Entity.h"
+#include "TextureHandler.h"
 
 class Caterpillar : public Entity {
 private:
-    static int numTextures;
-    static SDL_Texture** textures;
+    static std::vector<std::string> textures;
+    int life;
     float aimingAngle = 90;
-    int aimingCircleRadius = 30;
+    static int aimingCircleRadius;
     bool looksRight = true;
-    int actualTexture = 0;
     long lastFire = 0;
 public:
-    Caterpillar();
+    explicit Caterpillar(int life);
+    explicit Caterpillar(int x = 0, int y = 0);
+    explicit Caterpillar(int x, int y, int life);
 
+    int getLife() const;
     long getLastFire() const;
     void getAimingPosition(float& x, float& y) const;
     void update() override;
@@ -27,10 +31,6 @@ public:
     void setLooksRight(bool looksRight);
     void addAimingAngle(float angle);
     void fire();
-    void nextTexture();
-
-    static void deleteTextures();
 };
-
 
 #endif //CATERPILLARS_CATERPILLAR_H

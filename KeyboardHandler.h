@@ -12,6 +12,7 @@ class KeyboardHandler {
 private:
     static std::map<SDL_Keycode, Uint8> keyStates;
 public:
+    KeyboardHandler() = delete;
     static void handleKeyboardEvent(SDL_Event& event);
     static bool isKeyPressed(int keycode);
 };

@@ -4,11 +4,14 @@
 
 #include "Entity.h"
 #include "Properties.h"
+#include "TextureHandler.h"
 
-void Entity::move(int x, int y) {
+std::vector<std::string> Entity::textures;
 
-    box.x += x;
-    box.y += y;
+Entity::Entity(int x, int y) {
+
+    box.x = x;
+    box.y = y;
 
 }
 
@@ -21,6 +24,33 @@ int Entity::getWidth() const {
 int Entity::getHeight() const {
 
     return box.h;
+
+}
+
+std::set<Entity *>::iterator Entity::getIterator() {
+
+    return it;
+
+}
+
+bool Entity::isOnGround() const {
+
+    return box.y >= Properties::window->getHeight() - box.h;
+
+}
+
+void Entity::move(int x, int y) {
+
+    box.x += x;
+    box.y += y;
+
+}
+
+void Entity::nextTexture() {
+
+    actualTexture++;
+
+    if (actualTexture >= textures.size()) actualTexture = 0;
 
 }
 
@@ -38,14 +68,14 @@ void Entity::addVelocity(float velX, float velY) {
 
 }
 
-bool Entity::isOnGround() {
-
-    return box.y >= Properties::window->getHeight() - box.h;
-
-}
-
 void Entity::mulVelocityY(float m) {
 
     velY *= m;
+
+}
+
+void Entity::setIterator(std::set<Entity*>::iterator it) {
+
+    this->it = it;
 
 }

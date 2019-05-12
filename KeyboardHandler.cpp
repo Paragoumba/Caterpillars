@@ -4,6 +4,8 @@
 
 #include "KeyboardHandler.h"
 
+std::map<SDL_Keycode, Uint8> KeyboardHandler::keyStates;
+
 void KeyboardHandler::handleKeyboardEvent(SDL_Event &event) {
 
     keyStates[event.key.keysym.sym] = event.key.state;

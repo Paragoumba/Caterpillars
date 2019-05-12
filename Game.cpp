@@ -3,6 +3,7 @@
 //
 
 #include "Game.h"
+#include "Properties.h"
 
 void Game::update() {
 
@@ -13,6 +14,16 @@ void Game::update() {
         entity->update();
 
     }
+
+    for (auto& entity : entitiesToDelete) {
+
+        entities.erase(entity->getIterator());
+        delete entity;
+
+    }
+
+    entitiesToDelete.clear();
+
 }
 
 void Game::draw(SDL_Renderer* renderer){
@@ -24,19 +35,25 @@ void Game::draw(SDL_Renderer* renderer){
 
 void Game::addEntity(Entity* entity) {
 
-    entities.push_back(entity);
+    entity->setIterator(entities.insert(entity).first);
 
 }
 
 void Game::removeEntity(Entity* entity) {
 
-    for (auto it = entities.begin(); it != entities.end(); ++it) {
+    entitiesToDelete.insert(entity);
 
-        if ((*it) == entity){
+}
 
-            entities.erase(it);
-            return;
+const std::set<Entity*>& Game::getEntities() {
 
-        }
-    }
+    return entities;
+
+}
+
+Game::~Game() {
+
+    for (auto& entity : entities)
+        delete entity;
+
 }

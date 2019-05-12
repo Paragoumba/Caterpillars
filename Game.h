@@ -5,18 +5,21 @@
 #ifndef CATERPILLARS_GAME_H
 #define CATERPILLARS_GAME_H
 
-#include <SDL2/SDL_render.h>
-#include <vector>
+#include <set>
 #include "Entity.h"
 
 class Game {
 private:
-    std::vector<Entity*> entities;
+    std::set<Entity*> entities;
+    std::set<Entity*> entitiesToDelete;
 public:
     void addEntity(Entity* entity);
     void removeEntity(Entity* entity);
     void update();
     void draw(SDL_Renderer* renderer);
+    const std::set<Entity*>& getEntities();
+
+    ~Game();
 };
 
 

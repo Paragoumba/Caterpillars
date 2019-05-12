@@ -3,10 +3,12 @@
 //
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <iostream>
 #include "Window.h"
+#include "Properties.h"
 
-Window::Window(const char* title, int x, int y, int width, int height, Uint32 flags) : width(width), height(height) {
+Window::Window(const std::string& title, int x, int y, int width, int height, Uint32 flags) : width(width), height(height) {
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 
@@ -15,7 +17,18 @@ Window::Window(const char* title, int x, int y, int width, int height, Uint32 fl
 
     }
 
-    window = SDL_CreateWindow(title, x, y, width, height, flags);
+    if (TTF_Init() != 0) {
+
+        std::cout << "TTF_Init: " << TTF_GetError() << std::endl;
+        exit(1);
+
+    }
+
+    Properties::font = TTF_OpenFont("../res/NotoSans-Bold.ttf", 12);
+
+    if(!Properties::font) printf("TTF_OpenFont: %s\n", TTF_GetError());
+
+    window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
 
     if (window == nullptr){
 
@@ -23,6 +36,8 @@ Window::Window(const char* title, int x, int y, int width, int height, Uint32 fl
         exit(1);
 
     }
+
+    this->title = title;
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
@@ -60,9 +75,15 @@ int Window::getHeight() const {
 
 }
 
-SDL_Renderer *Window::getRenderer() {
+SDL_Renderer *Window::getRenderer() const {
 
     return renderer;
+
+}
+
+bool Window::isFullscreen() const {
+
+    return fullscreen;
 
 }
 
@@ -73,15 +94,28 @@ void Window::clear() {
     
 }
 
+int Window::setFullscreen(Uint32 flags) {
+
+    int errorCode = SDL_SetWindowFullscreen(window, flags);
+    fullscreen = !errorCode && flags;
+
+    return errorCode;
+
+}
+
+void Window::setTitle(const std::string& title) {
+
+    SDL_SetWindowTitle(window, title.c_str());
+    this->title = title;
+
+}
+
 Window::~Window() {
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
-}
-
-int Window::setFullscreen(Uint32 flags) {
-
-    return SDL_SetWindowFullscreen(window, flags);
+    TTF_Quit();
+    SDL_Quit();
 
 }

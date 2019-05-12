@@ -2,46 +2,67 @@
 // Created by Paragoumba on 19/04/19.
 //
 
-#include <string>
-#include <time.h>
-#include <iostream>
 #include "Caterpillar.h"
 #include "Properties.h"
 #include "Bullet.h"
+#include "Utils.h"
 
-Caterpillar::Caterpillar() {
+int Caterpillar::aimingCircleRadius = 30;
+std::vector<std::string> Caterpillar::textures(
+        {TextureHandler::CATERPILLAR0_TEXTURE,
+         TextureHandler::CATERPILLAR1_TEXTURE,
+         TextureHandler::CATERPILLAR2_TEXTURE});
 
-    numTextures = 3;
-    textures = new SDL_Texture*[numTextures]{nullptr};
+Caterpillar::Caterpillar(int life) : Caterpillar(0, 0, life) {}
 
-    for (int i = 0; i < numTextures; ++i){
+Caterpillar::Caterpillar(int x, int y) : Caterpillar(x, y, 100) {}
 
-        std::string path = "/home/paragoumba/Documents/Dev/C++/Code/Games/Caterpillars/res/caterpillar";
-        path.append(std::to_string(i)).append(".bmp");
-        textures[i] = SDL_CreateTextureFromSurface(Properties::window->getRenderer(), SDL_LoadBMP(path.c_str()));
+Caterpillar::Caterpillar(int x, int y, int life) : life(life) {
 
-    }
+    box.x = x;
+    box.y = y;
 
-    SDL_QueryTexture(textures[0], nullptr, nullptr, &box.w, &box.h);
-    box.x = 0;
-    box.y = 0;
+    TextureHandler::initTexture(textures[0]);
+    SDL_QueryTexture(TextureHandler::getTexture(textures[0]), nullptr, nullptr, &box.w, &box.h);
 
 }
 
 void Caterpillar::draw(SDL_Renderer* renderer) const {
 
-    SDL_Rect rect;
-    rect.w = rect.h = 4;
+    // Caterpillar's texture
+    SDL_RenderCopyEx(renderer, TextureHandler::getTexture(textures[actualTexture]), nullptr, &box, 0, nullptr, looksRight ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+
+    // Life counter
+    // ♥
+    std::string text = std::to_string(life);
+    SDL_Rect textRect;
+    SDL_Color textColor = {229, 107, 104};
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(
+            Properties::window->getRenderer(),
+            TTF_RenderUTF8_Blended(
+                    Properties::font,
+                    text.c_str(),
+                    textColor));
+
+    TTF_SizeUTF8(Properties::font, text.c_str(), &textRect.w, &textRect.h);
+
+    textRect.x = (int) round(box.x + (box.w - textRect.w) / 2.f);
+    textRect.y = (int) round(box.y - 1.5f * textRect.h);
+
+    SDL_RenderCopy(Properties::window->getRenderer(), texture, nullptr, &textRect);
+
+    // Aiming point
+    SDL_Rect aimingPoint;
+    aimingPoint.w = aimingPoint.h = 4;
     float x, y;
 
     getAimingPosition(x, y);
 
-    rect.x = (int) round(box.x + (float) box.w / 2 + x);
-    rect.y = (int) round(box.y + 15 + y);
+    aimingPoint.x = (int) round(box.x + (float) box.w / 2 + x);
+    aimingPoint.y = (int) round(box.y + 15 + y);
 
-    SDL_RenderCopyEx(renderer, textures[actualTexture], nullptr, &box, 0, nullptr, looksRight ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
     SDL_SetRenderDrawColor(renderer, 0, 85, 255, 255);
-    SDL_RenderFillRect(renderer, &rect);
+    SDL_RenderFillRect(renderer, &aimingPoint);
 
 }
 
@@ -76,14 +97,6 @@ void Caterpillar::addAimingAngle(float angle) {
 
 }
 
-void Caterpillar::nextTexture() {
-
-    actualTexture++;
-
-    if (actualTexture >= numTextures) actualTexture = 0;
-
-}
-
 void Caterpillar::fire() {
 
     auto *bullet = new Bullet();
@@ -93,19 +106,10 @@ void Caterpillar::fire() {
     getAimingPosition(x, y);
 
     bullet->setPos((int) round(box.x + (float) box.w / 2 + x), (int) round(box.y + 15 + y));
-    bullet->addVelocity(x, y);
+    bullet->addVelocity(x, y * 2);
     Properties::game->addEntity(bullet);
 
-    lastFire = time(nullptr);
-
-}
-
-void Caterpillar::deleteTextures() {
-
-    for (int i = 0; i < numTextures; ++i)
-        SDL_DestroyTexture(textures[i]);
-
-    delete textures;
+    lastFire = Utils::getTimestamp();
 
 }
 
@@ -124,5 +128,11 @@ void Caterpillar::getAimingPosition(float &x, float& y) const {
     y = aimingCircleRadius *
         sin((aimingAngle + 90) * M_PI / 180);   // Component y of the point of the aiming circle
                                                 // towards which caterpillar aims
+
+}
+
+int Caterpillar::getLife() const {
+
+    return life;
 
 }
