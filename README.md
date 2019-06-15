@@ -21,6 +21,5 @@ Then launch the game with `./build/Caterpillar`.
 - The game quits when `[esc]` is pressed
 
 ## Licensing
-The game and its sources are released under the MIT license. See [LICENSE](LICENSE) for further details.
-
+The game and its sources are released under the MIT license. See [LICENSE](LICENSE) for further details.<br/>
 **Noto is a trademark of Google Inc.** Noto fonts are open source. All Noto fonts are published under the [SIL Open Font License, Version 1.1](http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
