@@ -48,7 +48,14 @@ void Bullet::draw(SDL_Renderer* renderer) const {
     std::cout << "velX:" << velX << " velY:" << velY << " -velY:" << -velY << " d:" << velX / -velY << " atan:" << atan(velX / -velY) * (180.0 / M_PI) << std::endl;
 
     // TODO Fix bullet orientation
-    SDL_RenderCopyEx(renderer, TextureHandler::getTexture(textures[actualTexture]), nullptr, &box, (velY > 0 ? 90 : 0) + atan(velX / -velY) * (180.0 / M_PI), &center, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(
+            renderer,
+            TextureHandler::getTexture(textures[actualTexture]),
+            nullptr,
+            &box,
+            (velY > 0 ? 90 : 0) + atan(velX / -velY) * (180.0 / M_PI),
+            &center,
+            SDL_FLIP_NONE);
 
     // Draws a filled rect
     /*SDL_Rect rect;

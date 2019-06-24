@@ -2,7 +2,6 @@
 // Created by Paragoumba on 4/19/19.
 //
 
-
 #include <thread>
 #include "Properties.h"
 #include "Caterpillar.h"
